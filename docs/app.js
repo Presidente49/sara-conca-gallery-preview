@@ -1,10 +1,11 @@
+import { artworkImages } from "./artwork-images.js";
 import { initMotion } from './motion.js';
 import './artwork-protection.js';
 
 import { artworks } from "./artworks.js";
 
 
-const imagePath = (work) => `assets/artwork/${work.id}.jpg`;
+const imagePath = (work) => artworkImages[work.id];
 const inquiryPath = (work) => `mailto:SaraConca@me.com?subject=${encodeURIComponent(`Artwork inquiry — ${work.title}`)}&body=${encodeURIComponent(`Hello Sara,\n\nI would like to ask about ${work.sold ? 'works related to ' : 'availability and pricing for '}${work.title} (${work.dimensions}).\n\nMy location:\n\n`)}`;
 const grid = document.getElementById('artwork-grid');
 const counter = document.getElementById('collection-count');
