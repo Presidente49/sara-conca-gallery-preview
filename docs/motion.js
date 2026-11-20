@@ -1,7 +1,7 @@
 /**
- * A scroll-position fallback for the continuous gallery opening.
- * Native scroll timelines do the work when supported. No animation loop runs
- * while the visitor is idle, and the artwork itself is never distorted.
+ * One scroll-position timeline for the continuous gallery opening.
+ * Progress follows the sticky stage's actual height on every screen. No
+ * animation loop runs while idle, and the artwork itself is never distorted.
  */
 export function initMotion() {
   const journey = document.getElementById('journey');
@@ -14,13 +14,7 @@ export function initMotion() {
     return () => {};
   }
 
-  const nativeTimeline = typeof CSS !== 'undefined' &&
-    CSS.supports('(animation-timeline: view()) and (animation-range: entry)');
-  stage.dataset.motionEngine = nativeTimeline ? 'native' : 'fallback';
-  if (nativeTimeline) {
-    // Do not compete with compositor-driven CSS animations or their static mode.
-    return () => { delete stage.dataset.motionEngine; };
-  }
+  stage.dataset.motionEngine = 'scroll';
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const clamp = (value) => Math.max(0, Math.min(1, value));
@@ -53,7 +47,16 @@ export function initMotion() {
     if (document.hidden || !isVisible) return;
 
     const bounds = journey.getBoundingClientRect();
-    const progress = clamp(-bounds.top / Math.max(1, bounds.height - innerHeight));
+    if (matchMedia('(max-width:900px)').matches) {
+      const drift = clamp(-bounds.top / Math.max(1, bounds.height));
+      openingImage.style.transform = `scale(${(1 + drift * 0.025).toFixed(4)})`;
+      detailLayer.style.opacity = '0';
+      openingCopy.style.opacity = '1';
+      detailCopy.style.opacity = '0';
+      stage.style.setProperty('--gallery-progress', '0');
+      return;
+    }
+    const progress = clamp(-bounds.top / Math.max(1, bounds.height - stage.getBoundingClientRect().height));
     stage.style.setProperty('--gallery-progress', progress.toFixed(4));
     openingImage.style.transform = `scale(${(1 + progress * 0.08).toFixed(4)}) translate3d(${(-progress * 1.2).toFixed(3)}%, ${(-progress * 0.6).toFixed(3)}%, 0)`;
     detailLayer.style.opacity = interval(progress, 0.3, 0.75).toFixed(4);

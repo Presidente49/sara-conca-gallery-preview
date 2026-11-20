@@ -1,5 +1,5 @@
 import { artworkImages } from "./artwork-images.js";
-import { initMotion } from './motion.js';
+import { initMotion } from './motion.js?v=3';
 import './artwork-protection.js';
 
 import { artworks } from "./artworks.js";
@@ -102,6 +102,8 @@ function openWork(id, trigger, list = artworks) {
   currentWork = viewerWorks.findIndex(work => work.id === id);
   if (currentWork < 0) return;
   previousFocus = trigger;
+  dialog.dataset.kind = 'artwork';
+  dialog.dataset.input = trigger.matches(':focus-visible') ? 'keyboard' : 'pointer';
   updateViewer();
   if (!dialog.open) dialog.showModal();
   document.documentElement.dataset.viewer = 'open';
@@ -124,6 +126,12 @@ grid.addEventListener('click', event => {
 document.querySelectorAll('[data-photo]').forEach(trigger => trigger.addEventListener('click', () => {
   viewerWorks = [];
   previousFocus = trigger;
+  dialog.dataset.kind = 'photo';
+  dialog.dataset.input = trigger.matches(':focus-visible') ? 'keyboard' : 'pointer';
+  const sourceImage = trigger.querySelector('img');
+  const photoWidth = sourceImage?.naturalWidth || sourceImage?.width || 4;
+  const photoHeight = sourceImage?.naturalHeight || sourceImage?.height || 3;
+  viewerImage.parentElement.style.setProperty('--photo-ratio', `${photoWidth} / ${photoHeight}`);
   viewerImage.src = trigger.dataset.photo;
   viewerImage.parentElement.style.setProperty('--art-backdrop', `url("${trigger.dataset.photo}")`);
   viewerImage.alt = trigger.dataset.photoTitle;
@@ -147,9 +155,11 @@ document.getElementById('viewer-close').addEventListener('click', () => dialog.c
 document.getElementById('viewer-previous').addEventListener('click', () => moveViewer(-1));
 document.getElementById('viewer-next').addEventListener('click', () => moveViewer(1));
 dialog.addEventListener('keydown', event => {
+  dialog.dataset.input = 'keyboard';
   if (event.key === 'ArrowRight') { event.preventDefault(); moveViewer(1); }
   if (event.key === 'ArrowLeft') { event.preventDefault(); moveViewer(-1); }
 });
+dialog.addEventListener('pointerdown', () => { dialog.dataset.input = 'pointer'; });
 dialog.addEventListener('close', () => {
   delete document.documentElement.dataset.viewer;
   document.dispatchEvent(new CustomEvent('motionchange'));
@@ -203,7 +213,7 @@ const stage = document.getElementById('dream-stage');
 let motionOn = !reduced.matches;
 function applyMotion({fromInteraction = false} = {}) {
   const oldBounds = journey.getBoundingClientRect();
-  const wasInside = oldBounds.top < 0 && oldBounds.bottom > innerHeight;
+  const wasInside = oldBounds.top < 0 && oldBounds.bottom > stage.getBoundingClientRect().height;
   motionOn = motionOn && !reduced.matches;
   document.documentElement.dataset.motion = motionOn ? 'on' : 'off';
   motionToggle.disabled = reduced.matches;
@@ -220,8 +230,8 @@ let heroFrame = 0;
 function syncHero() {
   heroFrame = 0;
   const bounds = journey.getBoundingClientRect();
-  const progress = motionOn && !reduced.matches ? Math.max(0,Math.min(1,-bounds.top / Math.max(1,bounds.height-innerHeight))) : 0;
-  const detailActive = motionOn && !reduced.matches && progress > .525;
+  const progress = motionOn && !reduced.matches ? Math.max(0,Math.min(1,-bounds.top / Math.max(1,bounds.height-stage.getBoundingClientRect().height))) : 0;
+  const detailActive = !matchMedia('(max-width:900px)').matches && motionOn && !reduced.matches && progress > .525;
   stage.dataset.detailActive = String(detailActive);
   document.getElementById('opening-photo').inert = detailActive;
   document.querySelector('.opening-copy').inert = detailActive;
