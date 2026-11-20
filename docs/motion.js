@@ -7,6 +7,7 @@ export function initMotion() {
   const journey = document.getElementById('journey');
   const stage = document.getElementById('dream-stage');
   const openingImage = document.getElementById('gallery-opening');
+  const softening = document.getElementById('hero-softening');
   const detailLayer = document.getElementById('detail-layer');
   const openingCopy = document.querySelector('.opening-copy');
   const detailCopy = document.querySelector('.detail-copy');
@@ -30,6 +31,7 @@ export function initMotion() {
 
   function clearStyles() {
     openingImage.style.removeProperty('transform');
+    softening?.style.removeProperty('transform');
     detailLayer.style.removeProperty('opacity');
     openingCopy.style.removeProperty('opacity');
     detailCopy.style.removeProperty('opacity');
@@ -50,6 +52,7 @@ export function initMotion() {
     if (matchMedia('(max-width:900px)').matches) {
       const drift = clamp(-bounds.top / Math.max(1, bounds.height));
       openingImage.style.transform = `scale(${(1 + drift * 0.025).toFixed(4)})`;
+      if (softening) softening.style.transform = openingImage.style.transform;
       detailLayer.style.opacity = '0';
       openingCopy.style.opacity = '1';
       detailCopy.style.opacity = '0';
@@ -59,6 +62,7 @@ export function initMotion() {
     const progress = clamp(-bounds.top / Math.max(1, bounds.height - stage.getBoundingClientRect().height));
     stage.style.setProperty('--gallery-progress', progress.toFixed(4));
     openingImage.style.transform = `scale(${(1 + progress * 0.08).toFixed(4)}) translate3d(${(-progress * 1.2).toFixed(3)}%, ${(-progress * 0.6).toFixed(3)}%, 0)`;
+    if (softening) softening.style.transform = openingImage.style.transform;
     detailLayer.style.opacity = interval(progress, 0.3, 0.75).toFixed(4);
     openingCopy.style.opacity = (1 - interval(progress, 0.2, 0.45)).toFixed(4);
     detailCopy.style.opacity = interval(progress, 0.55, 0.8).toFixed(4);

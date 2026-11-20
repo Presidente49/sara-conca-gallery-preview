@@ -1,5 +1,5 @@
 import { artworkImages } from "./artwork-images.js";
-import { initMotion } from './motion.js?v=3';
+import { initMotion } from './motion.js?v=5';
 import './artwork-protection.js';
 
 import { artworks } from "./artworks.js";
@@ -76,6 +76,8 @@ filters.forEach(filter => filter.addEventListener('click', () => {
 }));
 
 function updateViewer() {
+  document.getElementById('viewer-softening').setAttribute('hidden', '');
+  dialog.dataset.softenRight = 'false';
   const work = viewerWorks[currentWork];
   viewerImage.src = imagePath(work);
   viewerImage.parentElement.style.setProperty('--art-backdrop', `url("${imagePath(work)}")`);
@@ -132,6 +134,11 @@ document.querySelectorAll('[data-photo]').forEach(trigger => trigger.addEventLis
   const photoWidth = sourceImage?.naturalWidth || sourceImage?.width || 4;
   const photoHeight = sourceImage?.naturalHeight || sourceImage?.height || 3;
   viewerImage.parentElement.style.setProperty('--photo-ratio', `${photoWidth} / ${photoHeight}`);
+  const softened = trigger.hasAttribute('data-soften-right');
+  const softening = document.getElementById('viewer-softening');
+  dialog.dataset.softenRight = String(softened);
+  softening.toggleAttribute('hidden', !softened);
+  if (softened) document.getElementById('viewer-softening-image').setAttribute('href', trigger.dataset.photo);
   viewerImage.src = trigger.dataset.photo;
   viewerImage.parentElement.style.setProperty('--art-backdrop', `url("${trigger.dataset.photo}")`);
   viewerImage.alt = trigger.dataset.photoTitle;
